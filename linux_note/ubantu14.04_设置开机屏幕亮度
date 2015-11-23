@@ -1,0 +1,10 @@
+应用对象：无法通过【系统设置】保存亮度信息的计算机
+由于硬件兼容性的原因，一部分计算机在每次启动时，屏幕亮度都会重置为最高或最低，用户可能需要每次开机的时候都将亮度调整到合适的值，非常不便。
+解决方案：
+	1、用命令行查询亮度的最大值
+	cat /sys/class/backlight/acpi_video0/max_brightness
+	2、打开/etc/rc.local
+	sudo gedit /etc/rc.local
+	3、在【exit 0】前面一行添加一行文字
+	echo 4 > /sys/class/backlight`/acpi_video0/brightness #4代表亮度值，可以调节为您认为合适的值
+	4、保存，退出
