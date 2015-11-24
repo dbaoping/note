@@ -16,5 +16,5 @@
 	2、USR2 平滑升级可执行进程	kill -USR2 nginx的进程号(要操作的进程号)
 	3、WINCH 从容关闭工作进程	kill -WINCH 工作进程号
 # 查看nginx的版本
-	./nginx -V
+	/usr/local/nginx/sbin/nginx -V
 
