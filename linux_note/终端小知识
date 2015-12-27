@@ -1,0 +1,13 @@
+ctrl+d  键盘输入结束或退出终端
+ctrl+s  暂停当前程序，暂停后按任意键恢复运行
+ctrl+z  将当前程序放到后台运行，恢复到前台为命令fg
+ctrl+a  相当于home键
+ctrl+e  相当于end键
+ctrl+k	删除从光标所在位置到行末
+Alt+Backspace  向前删除一个单词
+shift+pageUp  将终端显示向上滚动
+shift+pageDn  将终端显示向下滚动
+
+
+shell 常用通配符
+
