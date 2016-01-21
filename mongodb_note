@@ -1,0 +1,47 @@
+service mongod start
+service mongod stop
+service mongod restart
+
+The MongoDB instance stores its data files in /var/lib/mongodb and
+its log files in /var/log/mongodb by default,
+You can specify alternate log and data file directories in /etc/mongod.conf. See systemLog.path and storage.dbPath for additional information.
+/usr/bin/
+
+1)Remove any MongoDB packages that you had previously installed.
+apt-get purge mongodb-org*
+2)Remove MongoDB databases and log files.
+rm -rf /var/lib/mongodb
+rm -rf /var/log/mongodb
+
+# 启动mongodb
+/usr/bin/mongod -f /etc/mongod.conf
+
+/usr/bin/mongo 127.0.0.1:27017/dbp
+# 显示所有数据库  
+show dbs 
+# 切换数据库
+use 数据库
+# 显示db中所有的集合
+show collections
+show tables
+# 停止mongodb
+use admin
+db.shutdownServer()
+# 插入数据
+db.集合名.insert(json)
+# 查询
+db.集合名.find() // 查找所有
+db.集合名.find(json) // 按条件查找
+db.集合名.find(json).count() // 符合条件的条数
+db.集合名.find(json).skip(num).limit(num).sort({key:1 or -1}) // 查询一定的条数 其中 1 为升序排列，而-1是用于降序排列。
+# 更新
+db.集合名.update(json查询条件, json更新后的值)
+db.集合名.update(json查询条件, {$set:json})  // 只更新某一个值
+db.集合名.update(json查询条件, json, true)   // 查询数据不存在时，插入要更新的值
+db.集合名.update(json查询条件, {$set:json}, false, true)  // 查询有多条时，更新全部
+# 删除
+db.集合名.remove(json查询条件)  // 删除所有符合条件的数据
+db.集合名.drop()  // 删除集合  
+# 索引		// 数据量大时创建索引很耗时
+db.集合名.getIndexes()  // 查询集合中所有的索引
+
