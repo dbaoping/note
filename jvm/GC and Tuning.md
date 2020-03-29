@@ -109,6 +109,8 @@ GC 即 Garbage Collection，中文 意思“垃圾回收”，在有GC之前，�
 
 #### 1. 部分垃圾回收器使用的模型
 
+![image](https://note.youdao.com/ynoteshare1/index.html?id=b38bb414cb5eda656fe40ca2d3cbdb6f&type=notebook#/4181A1AB38AF40E9979C2A0EEBD79FCF)
+
 ![image](https://raw.githubusercontent.com/dbaoping/note/master/pic/0c2438d7-e471-3129-8a16-ae7f2ba46d86.png)
 
    > 1、除Epsilon、ZGC、Shenandoah之外的GC都是使用逻辑分代模型
@@ -161,16 +163,8 @@ GC 即 Garbage Collection，中文 意思“垃圾回收”，在有GC之前，�
 
 ## 常见的垃圾回收器
 
-![常用垃圾回收器](常用垃圾回收器.png)
+![常用垃圾回收器](https://raw.githubusercontent.com/dbaoping/note/master/pic/5977533-fa8825a29a577899.jpg)
 
-1. 垃圾回收器的发展路线，是随着内存越来越大的过程而演进						
-   从分代算法演化到不分代算法
-   Serial算法 几十兆
-   Parallel算法 几个G
-   CMS 几十个G  - 承上启下，开始并发回收 -
-   .- 三色标记 - 
-2. JDK诞生 Serial追随 提高效率，诞生了PS，为了配合CMS，诞生了PN，CMS是1.4版本后期引入，CMS是里程碑式的GC，它开启了并发回收的过程，但是CMS毛病较多，因此目前任何一个JDK版本默认是CMS
-   并发垃圾回收是因为无法忍受STW
 ### 1 Serial 年轻代 串行回收
 
 ![image-20200328173349883](https://raw.githubusercontent.com/dbaoping/note/master/pic/image-20200328173349883.png)
@@ -182,6 +176,8 @@ GC 即 Garbage Collection，中文 意思“垃圾回收”，在有GC之前，�
 - 相比其他收集器，Serial额外内存消耗最小，没有其他线程交互的开销，单线程收集效率最高。
 
 ### 2 ParNew 收集器
+
+
 
 ### 3 Parallel Scavenge 年轻代 并行回收
 
