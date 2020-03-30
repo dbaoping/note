@@ -324,11 +324,39 @@ docker inspect --format='{{.NetworkSettings.IPAddress}}' 容器名称（容器id
 docker rm 容器名称（容器id）
 ```
 ## 4、应用的部署
-#### gitlab安装
+### 4.1 gitlab安装
+- gitlab-ce为稳定版本，后面不填写版本则默认pull最新latest版本
+```csharp
+docker pull gitlab/gitlab-ce
+```
+- 运行镜像
 ```csharp
 docker run -d  -p 443:443 -p 80:80 -p 222:22 --name gitlab --restart always -v /home/gitlab/config:/etc/gitlab -v /home/gitlab/logs:/var/log/gitlab -v /home/gitlab/data:/var/opt/gitlab gitlab/gitlab-ce
+# -d：后台运行
+# -p：将容器内部端口向外映射
+# --name：命名容器名称
+# -v：将容器内数据文件夹或者日志、配置等文件夹挂载到宿主机指定目录
+```
+- 配置
+配置gitlab.rb（宿主机路径：/home/gitlab/config/gitlab.rb）。
+```
+# gitlab.rb文件内容默认全是注释
+$ vim /home/gitlab/config/gitlab.rb
+
+# 配置http协议所使用的访问地址,不加端口号默认为80
+external_url 'http://192.168.199.231'
+
+# 配置ssh协议所使用的访问地址和端口
+gitlab_rails['gitlab_ssh_host'] = '192.168.199.231'
+gitlab_rails['gitlab_shell_ssh_port'] = 222 # 此端口是run时22端口映射的222端
+```
+- 重启
+重启gitlab容器
+```
+docker restart gitlab
 ```
 ## 5、迁移与备份
+
 ### 5.1 容器保存为镜像
 我们可以通过以下命令将容器保存为镜像
 ```
