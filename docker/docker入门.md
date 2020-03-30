@@ -323,7 +323,21 @@ docker inspect --format='{{.NetworkSettings.IPAddress}}' 容器名称（容器id
 ```
 docker rm 容器名称（容器id）
 ```
+#### 3.2.8 查看容器日志
+
+```
+docker logs [OPTIONS] CONTAINER
+  Options:
+        --details        显示更多的信息
+    -f, --follow         跟踪实时日志
+        --since string   显示自某个timestamp之后的日志，或相对时间，如42m（即42分钟）
+        --tail string    从日志末尾显示多少行日志， 默认是all
+    -t, --timestamps     显示时间戳
+        --until string   显示自某个timestamp之前的日志，或相对时间，如42m（即42分钟）
+```
+
 ## 4、应用的部署
+
 ### 4.1 gitlab安装
 - gitlab-ce为稳定版本，后面不填写版本则默认pull最新latest版本
 ```csharp
