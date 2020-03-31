@@ -224,7 +224,7 @@ GC 即 Garbage Collection，中文 意思“垃圾回收”，在有GC之前，�
         > 清理删除掉标记阶段判断的已经死亡的
         > 对象，由于不需要移动存活对象，所以这个阶段也是可以与用户线程同时并发的
 
-- ![image-20200329161730359](C:\Users\X1 Carbon\Desktop\image-20200329161730359.png)
+- ![image-20200329161730359](https://raw.githubusercontent.com/dbaoping/note/master/pic/image-20200329161730359.png)
 	
 - 缺点
 
@@ -244,7 +244,7 @@ GC 即 Garbage Collection，中文 意思“垃圾回收”，在有GC之前，�
 
 ### 七、 G1 收集器(200ms - 10ms)
 
-![image-20200329190207533](C:\Users\X1 Carbon\Desktop\image-20200329190207533.png)
+![image-20200329190207533](https://raw.githubusercontent.com/dbaoping/note/master/pic/image-20200329190207533.png)
 
 - 收集过程
 
