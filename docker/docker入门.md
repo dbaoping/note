@@ -398,15 +398,21 @@ Dockerfile是由一系列命令和参数构成的脚本，这些命令应用于�
 3、对于运维人员：在部署时，可以实现应用的无缝移植。
 
 ### 6.2 常用命令
-命令 | 作用 
----|---
-FROM image_name:tag | 定义了使用哪个基础镜像启动构建流程 
-MAINTAINER user_name | 声明镜像的创建者 
-ENVkey value | T设置环境变量（可以写多条） 
-RUN command | 是Dockerfle的核心部分（可以写多条） 
-ADD source_dir/file | 将宿主机的文件复制到容器内，如果是一个压缩文件，将会在复制dest dir/file 后自动解压 
-COPY source_dir/fle | 和ADD相似，但是如果有压缩文件并不能解压dest dir/file 
-WORKDIR path dir | 设置工作目录 
+命令 |举例 | 作用 
+---|---|---
+FROM |FROM centos:7 | 定义了使用哪个基础镜像启动构建流程 
+ARG |ARG user USER $user | 在构建镜像时，指定一些参数 
+MAINTAINER/LABEL |LABEL maintaine="dd" | 声明镜像的创建者 
+RUN | RUN apt-get update                      | 在容器构建过程中执行的shell命令，使用该命令自定义容器的行为 
+ENV |ENV JAVA_HOME /usr/local/jdk1.8.0_45 | 设置环境变量（可以写多条） 
+ VOLUME           | VOLUME ["/var/lib/mysql"]               | 设置卷，挂载到目录                                           
+ADD |ADD https://xxx.html /var/www | 将宿主机的文件复制到容器内，如果是压缩文件或URL，会自动下载或解压到后面的目录 
+ COPY             |COPY /var/www /var/home | 和ADD相似，但是如果是压缩文件或URL，并不能解压或下载 
+WORKDIR |WORKDIR /data | 设置工作目录 
+EXPOSE |EXPOSE 80 | 容器运行暴露的端口 
+CMD |CMD ["-C","/start.sh"] | 启动容器时执行的shell命令 
+USER |USER root | 指定运行用户 
+ENTRYPOINT |ENTRYPOINT ["/bin/bash"-C","/start.sh"] | 启动容器时执行的Shell命令，同CMD类似，只是由ENTRYPOINT启动的程序不会被docker run命令行指定的参数所覆盖 
 
 ### 6.3 使用脚本创建镜像
 步骤：
