@@ -1,4 +1,4 @@
-## JVM调优第一步，了解JVM常用命令行参数
+## 了解JVM常用命令行参数
 
 * JVM的命令行参数参考：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 
@@ -10,49 +10,43 @@
     >
     > 不稳定：-XX 开头，下个版本可能取消
 
-    java -version
+java -version
 
-    java -X
+java -X
 
-    
+java -XX:+PrintFlagsWithComments //只有debug版本能用
 
-    java -XX:+PrintFlagsWithComments //只有debug版本能用
+试验用程序：
 
-    
+```java
+import java.util.List;
+import java.util.LinkedList;
 
-    试验用程序：
-
-    ```java
-    import java.util.List;
-    import java.util.LinkedList;
-    
-    public class HelloGC {
-      public static void main(String[] args) {
-        System.out.println("HelloGC!");
+public class HelloGC {
+    public static void main(String[] args) {
+        System.out.println("Hello GC!");
         List list = new LinkedList();
         for(;;) {
           byte[] b = new byte[1024*1024];
           list.add(b);
-      }
-      }
+        }
     }
-    ```
+}
+```
 
-    
+1. 区分概念：内存泄漏memory leak，内存溢出out of memory
+2. java -XX:+PrintCommandLineFlags HelloGC
+3. java -Xmn10M -Xms40M -Xmx60M -XX:+PrintCommandLineFlags -XX:+PrintGC  HelloGC
+    PrintGCDetails PrintGCTimeStamps PrintGCCauses
+4. java -XX:+UseConcMarkSweepGC -XX:+PrintCommandLineFlags HelloGC
+5. java -XX:+PrintFlagsInitial 默认参数值
+6. java -XX:+PrintFlagsFinal 最终参数值
+7. java -XX:+PrintFlagsFinal | grep xxx 找到对应的参数
+8. java -XX:+PrintFlagsFinal -version | grep GC
+9. java -XX:+PrintFlagsFinal -version | wc -l 
+	共728个参数
 
-    1. 区分概念：内存泄漏memory leak，内存溢出out of memory
-    2. java -XX:+PrintCommandLineFlags HelloGC
-    3. java -Xmn10M -Xms40M -Xmx60M -XX:+PrintCommandLineFlags -XX:+PrintGC  HelloGC
-        PrintGCDetails PrintGCTimeStamps PrintGCCauses
-    4. java -XX:+UseConcMarkSweepGC -XX:+PrintCommandLineFlags HelloGC
-    5. java -XX:+PrintFlagsInitial 默认参数值
-    6. java -XX:+PrintFlagsFinal 最终参数值
-    7. java -XX:+PrintFlagsFinal | grep xxx 找到对应的参数
-    8. java -XX:+PrintFlagsFinal -version |grep GC
-    9. java -XX:+PrintFlagsFinal -version | wc -l 
-        共728个参数
-
-### PS GC日志详解
+## PS GC日志详解
 
 每种垃圾回收器的日志格式是不同的！
 
@@ -71,7 +65,7 @@ eden space 5632K, 94% used [0x00000000ff980000,0x00000000ffeb3e28,0x00000000fff0
 
 total = eden + 1个survivor
 
-### 调优前的基础概念：
+## 调优前的基础概念：
 
 1. 吞吐量：用户代码时间 /（用户代码执行时间 + 垃圾回收时间）
 2. 响应时间：STW越短，响应时间越好
@@ -172,7 +166,7 @@ total = eden + 1个survivor
 4. 如何监控JVM
     1. jstat jvisualvm jprofiler arthas top...
 
-### 解决JVM运行中的问题
+## 解决JVM运行中的问题
 
 #### 一个案例理解常用工具
 
@@ -384,8 +378,6 @@ total = eden + 1个survivor
 >
 > （19840）：整个堆大小
 
-
-
 ```java
 [GC (CMS Initial Mark) [1 CMS-initial-mark: 8511K(13696K)] 9866K(19840K), 0.0040321 secs] [Times: user=0.01 sys=0.00, real=0.00 secs] 
 	//8511 (13696) : 老年代使用（最大）
@@ -414,8 +406,6 @@ total = eden + 1个survivor
 [CMS-concurrent-reset: 0.000/0.000 secs] [Times: user=0.00 sys=0.00, real=0.00 secs]
 	//重置内部结构，为下次GC做准备
 ```
-
-
 
 ### G1
 
@@ -464,9 +454,7 @@ total = eden + 1个survivor
 
 ```
 
-
-
-### 案例汇总
+## 案例汇总
 
 OOM产生的原因多种多样，有些程序未必产生OOM，不断FGC(CPU飙高，但内存回收特别少) （上面案例）
 
@@ -656,21 +644,18 @@ OOM产生的原因多种多样，有些程序未必产生OOM，不断FGC(CPU飙�
 
 
 
-#### 作业
+## 作业
 
 1. -XX:MaxTenuringThreshold控制的是什么？
-    A: 对象升入老年代的年龄
-      	B: 老年代触发FGC时的内存垃圾比例
-
+	A: 对象升入老年代的年龄
+	B: 老年代触发FGC时的内存垃圾比例
 2. 生产环境中，倾向于将最大堆内存和最小堆内存设置为：（为什么？）
     A: 相同 B：不同
-
 3. JDK1.8默认的垃圾回收器是：
     A: ParNew + CMS
-      	B: G1
-      	C: PS + ParallelOld
-      	D: 以上都不是
-
+	B: G1
+    C: PS + ParallelOld
+    D: 以上都不是
 4. 什么是响应时间优先？
 
 5. 什么是吞吐量优先？
@@ -708,20 +693,15 @@ OOM产生的原因多种多样，有些程序未必产生OOM，不断FGC(CPU飙�
 16. G1是否分代？G1垃圾回收器会产生FGC吗？
 
 17. 如果G1产生FGC，你应该做什么？
-
-        1. 扩内存
-        2. 提高CPU性能（回收的快，业务逻辑产生对象的速度固定，垃圾回收越快，内存空间越大）
-        3. 降低MixedGC触发的阈值，让MixedGC提早发生（默认是45%）
-
+	1. 扩内存
+    2. 提高CPU性能（回收的快，业务逻辑产生对象的速度固定，垃圾回收越快，内存空间越大）
+    3. 降低MixedGC触发的阈值，让MixedGC提早发生（默认是45%）
  18. 问：生产环境中能够随随便便的dump吗？
      小堆影响不大，大堆会有服务暂停或卡顿（加live可以缓解），dump前会有FGC
 
  19. 问：常见的OOM问题有哪些？
      栈 堆 MethodArea 直接内存
-
-
-
-### 参考资料
+## 参考资料
 
 1. [https://blogs.oracle.com/](https://blogs.oracle.com/jonthecollector/our-collectors)[jonthecollector](https://blogs.oracle.com/jonthecollector/our-collectors)[/our-collectors](https://blogs.oracle.com/jonthecollector/our-collectors)
 2. https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
@@ -739,6 +719,3 @@ OOM产生的原因多种多样，有些程序未必产生OOM，不断FGC(CPU飙�
     1. jmap -heap pid
     2. jmap -histo pid
     3. jmap -clstats pid
-
-
-
