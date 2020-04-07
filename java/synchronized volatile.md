@@ -214,7 +214,17 @@ synchronized(o)
 
 ## 字节码层级
 
+代码块实现方式
+
 monitorenter moniterexit
+
+### 同步方法实现方式
+
+- 同步方法的实现不是基于monitorenter和monitorexit指令来实现的
+
+- 同步方法在运行时，常量池里通过ACC_SYNCHRONIZED来区分是否是同步方法，方法执行时会检查该标志
+
+- 当一个方法有这个标志的时候，进入的线程首先需要获得监视器才能执行该方法
 
 ## JVM层级（Hotspot）
 
@@ -474,6 +484,36 @@ C1 Compile Level 1 (一级优化)
 C2 Compile Level 2 (二级优化)
 
 找到m() n()方法的汇编码，会看到 lock comxchg .....指令
+
+
+
+其中标志位10对应的指针，就是指向Monitor对象的，monitor是由ObjectMonitor实现的，其主要数据结构如下（位于HotSpot虚拟机源码ObjectMonitor.hpp文件，C++实现的）
+
+```c++
+ObjectMonitor() {    
+    _header       = NULL;    
+    _count        = 0; //记录个数    
+    _waiters      = 0,    
+    _recursions   = 0;    
+    _object       = NULL;    
+    _owner        = NULL;   
+    _WaitSet      = NULL; //处于wait状态的线程，会被加入到
+        _WaitSetLock  = 0 ;    
+    _Responsible  = NULL ;    
+    _succ         = NULL ;    
+    _cxq          = NULL ;    
+    FreeNext      = NULL ;    
+    _EntryList    = NULL ; //处于等待锁block状态的线程，会被加入到该列表    
+    _SpinFreq     = 0 ;    
+    _SpinClock    = 0 ;    
+    OwnerIsThread = 0 ;  
+}
+
+```
+
+ObjectMonitor中有两个队列，_WaitSet 和 _EntryList，用来保存ObjectWaiter对象列表( 每个等待锁的线程都会被封装成ObjectWaiter对象)，_owner指向持有ObjectMonitor对象的线程，当多个线程同时访问一段同步代码时，首先会进入 _EntryList 集合，当线程获取到对象的monitor 后进入 _Owner 区域并把monitor中的owner变量设置为当前线程同时monitor中的计数器count加1，若线程调用 wait() 方法，将释放当前持有的monitor，owner变量恢复为null，count自减1，同时该线程进入 WaitSet集合中等待被唤醒。若当前线程执行完毕也将释放monitor(锁)并复位变量的值，以便其他线程进入获取monitor(锁)。
+
+由此看来，monitor对象存在于每个Java对象的对象头中(存储的指针的指向)，synchronized锁便是通过这种方式互斥的。
 
 ## synchronized vs Lock (CAS)
 
