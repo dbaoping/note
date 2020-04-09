@@ -26,8 +26,6 @@ _start:
 
 ```
 
-
-
 # CAS
 
 Compare And Swap (Compare And Exchange) / 自旋 / 自旋锁 / 无锁 （无重量锁）
