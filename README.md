@@ -17,4 +17,4 @@
 
 ## JAVA
 
-[synchronized和volatile详解]([synchronized volatile](https://github.com/dbaoping/note/blob/master/java/synchronized volatile.md))
+[synchronized和volatile详解](https://github.com/dbaoping/note/blob/master/java/synchronized volatile.md)
