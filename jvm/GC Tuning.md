@@ -409,7 +409,7 @@ total = eden + 1个survivor
 
 ### G1
 
-1. ▪https://www.oracle.com/technical-resources/articles/java/g1gc.html
+1. https://www.oracle.com/technical-resources/articles/java/g1gc.html
 
 #### G1日志详解
 
