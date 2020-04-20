@@ -1,32 +1,37 @@
-# 用户态与内核态
+## 用户态与内核态
 
 JDK1.0，synchronized 叫做重量级锁， 因为申请锁资源必须通过kernel, 系统调用
 
-```assembly
-;hello.asm
-;write(int fd, const void *buffer, size_t nbytes)
+### 为什么要区分用户态与内核态？
 
-section data
-    msg db "Hello", 0xA
-    len equ $ - msg
+​		在`CPU`的所有指令中，有一些指令是非常危险的，如果错用，将导致整个系统崩溃。比如：清内存、设置时钟等。所以，`CPU`将指令分为特权指令和非特权指令，对于那些危险的指令，只允许操作系统及其相关模块使用。`Intel`的`CPU`将特权级别分为4个级别：`RING0`、`RING1`、`RING2`、`RING3`。
 
-section .text
-global _start
-_start:
+​		当一个任务（进程）执行系统调用而陷入内核代码中执行时，我们就称进程处于内核运行态（或简称为内核态）。此时处理器处于特权级最高的（0级）内核代码中执行。
 
-    mov edx, len
-    mov ecx, msg
-    mov ebx, 1 ;文件描述符1 std_out
-    mov eax, 4 ;write函数系统调用号 4
-    int 0x80
+- 当进程处于内核态时，执行的内核代码会使用当前进程的内核栈。每个进程都有自己的内核栈。
+- 当进程在执行用户自己的代码时，则称其处于用户运行态（用户态）。即此时处理器在特权级最低的（3级）用户代码中运行。
 
-    mov ebx, 0
-    mov eax, 1 ;exit函数系统调用号
-    int 0x80
+​		当正在执行用户程序而突然被中断程序中断时，此时用户程序也可以象征性地称为处于进程的内核态。`Linux`使用了`Ring3`级别运行用户态，`Ring0`作为 内核态，没有使用`Ring1`和`Ring2`。`Ring3`状态不能访问`Ring0`的地址空间，包括代码和数据。`Linux`进程的`4GB`地址空间，3G-4G部分大家是共享的，是内核态的地址空间，这里存放在整个内核的代码和所有的内核模块，以及内核所维护的数据。用户运行一个程序，该程序所创建的进程开始是运行在用户态的，如果要执行文件操作，网络数据发送等操作，必须通过`write`，`send`等系统调用，这些系统调用会调用内核中的代码来完成操作，这时必须切换到`Ring0`，然后进入`3GB-4GB`中的内核地址空间去执行这些代码完成操作，完成后，切换回`Ring3`，回到用户态。
 
-```
+这样，用户态的程序就不能随意操作内核地址空间，具有一定的安全保护作用。
 
-# CAS
+处理器总处于以下状态中的一种：
+
+- 1、内核态，运行于进程上下文，内核代表进程运行于内核空间；
+- 2、内核态，运行于中断上下文，内核代表硬件运行于内核空间；
+- 3、用户态，运行于用户空间。
+
+### 用户态到内核态怎样切换？
+
+从用户态到内核态切换可以通过三种方式：
+
+**系统调用：**这是用户态进程主动要求切换到内核态的一种方式，用户态进程通过系统调用申请使用操作系统提供的服务程序完成工作，比如前例中fork()实际上就是执行了一个创建新进程的系统调用。而系统调用的机制其核心还是使用了操作系统为用户特别开放的一个中断来实现，例如Linux的int 80h中断。
+
+**异常：**当CPU在执行运行在用户态下的程序时，发生了某些事先不可知的异常，这时会触发由当前运行进程切换到处理此异常的内核相关程序中，也就转到了内核态，比如缺页异常。
+
+**外设中断：**当外围设备完成用户请求的操作后，会向CPU发出相应的中断信号，这时CPU会暂停执行下一条即将要执行的指令转而去执行与中断信号对应的处理程序，如果先前执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了由用户态到内核态的切换。比如硬盘读写操作完成，系统会切换到硬盘读写的中断处理程序中执行后续操作等。
+
+## CAS
 
 Compare And Swap (Compare And Exchange) / 自旋 / 自旋锁 / 无锁 （无重量锁）
 
@@ -38,23 +43,23 @@ ABA问题，你的女朋友在离开你的这段儿时间经历了别的人，�
 
 解决办法（版本号 AtomicStampedReference），基础类型简单值不需要版本号
 
-# Unsafe
+## Unsafe
 
 AtomicInteger:
 
 ```java
 public final int incrementAndGet() {
-        for (;;) {
-            int current = get();
-            int next = current + 1;
-            if (compareAndSet(current, next))
-                return next;
-        }
-    }
+	for (;;) {
+		int current = get(); // 获取当前的值
+        int next = current + 1;
+        if (compareAndSet(current, next))
+        	return next;
+	}
+}
 
 public final boolean compareAndSet(int expect, int update) {
-        return unsafe.compareAndSwapInt(this, valueOffset, expect, update);
-    }
+	return unsafe.compareAndSwapInt(this, valueOffset, expect, update);
+}
 ```
 
 Unsafe:
@@ -111,8 +116,6 @@ UNSAFE_END
 
 jdk8u: atomic_linux_x86.inline.hpp **93行**
 
-is_MP = Multi Processor  
-
 ```c++
 inline jint     Atomic::cmpxchg    (jint     exchange_value, volatile jint*     dest, jint     compare_value) {
   int mp = os::is_MP();
@@ -123,6 +126,8 @@ inline jint     Atomic::cmpxchg    (jint     exchange_value, volatile jint*     
   return exchange_value;
 }
 ```
+
+is_MP = Multi Processor  
 
 jdk8u: os.hpp is_MP()
 
