@@ -170,7 +170,6 @@ lock指令在执行后面指令的时候锁定一个北桥信号
 
 ```xml
 <dependencies>
-        <!-- https://mvnrepository.com/artifact/org.openjdk.jol/jol-core -->
         <dependency>
             <groupId>org.openjdk.jol</groupId>
             <artifactId>jol-core</artifactId>
