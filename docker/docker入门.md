@@ -336,6 +336,19 @@ docker logs [OPTIONS] CONTAINER
         --until string   显示自某个timestamp之前的日志，或相对时间，如42m（即42分钟）
 ```
 
+#### 3.2.9 从容器创建一个新的镜像。
+
+```
+docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+OPTIONS说明：
+	-a :提交的镜像作者；
+	-c :使用Dockerfile指令来创建镜像；
+	-m :提交时的说明文字；
+	-p :在commit时，将容器暂停。
+
+例子：docker commit -a "runoob.com" -m "my apache" a404c6c174a2  mymysql:v1 
+```
+
 ## 4、应用的部署
 
 ### 4.1 gitlab安装
