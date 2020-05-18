@@ -1,6 +1,6 @@
 ## 什么是Elasticsearch
 
-
+Elasticsearch 是一个开源的分布式 RESTful 搜索和分析引擎，
 
 ## 安装
 
@@ -44,3 +44,145 @@ cd elasticsearch-7.7.0
 ES集群可由多个节点组成，各Shard分布式地存储于这些节点上。
 
 ES可自动在节点间按需要移动shard，例如增加节点或节点故障时。简而言之，分片实现了集群的分布式存储，而副本实现了其分布式处理及冗余功能。
+
+## 查看集群健康情况
+
+```console
+GET /_cat/health?v
+```
+
+## 与Elasticsearch交互的方式
+
+```sh
+curl -X <VERB> '<PROTOCOL>://<HOST>:<PORT>/<PATH>?<QUERY_STRING>' -d '<BODY>'
+```
+
+**VERB**包括`GET`, `POST`, `PUT`, `HEAD`, or `DELETE`.
+
+## 索引操作
+
+### 创建索引
+
+
+
+### 更新索引
+
+
+
+### 删除索引
+
+
+
+### 查询索引
+
+**查询bank下面所有的文档**
+
+```console
+GET /bank/_search
+{
+  "query": { "match_all": {} },
+  "sort": [
+    { "account_number": "asc" }
+  ]
+}
+```
+
+**分页查询**
+
+```console
+GET /bank/_search
+{
+  "query": { "match_all": {} },
+  "sort": [
+    { "account_number": "asc" }
+  ],
+  "from": 10, # 开始的位置
+  "size": 10  # 查询的总条数
+}
+```
+
+**查询address中有mill或lane的数据**
+
+```console
+GET /bank/_search
+{
+  "query": { "match": { "address": "mill lane" } }
+}
+```
+
+> 要执行词组搜索而不是匹配单个词，请使用 `match_phrase`代替`match`
+
+**属于40岁客户的帐户，但不包括居住在爱达荷州（ID）的任何人**
+
+```console
+GET /bank/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        { "match": { "age": "40" } }
+      ],
+      "must_not": [
+        { "match": { "state": "ID" } }
+      ]
+    }
+  }
+}
+```
+
+要构造更复杂的查询，可以使用`bool`查询来组合多个查询条件。您可以根据需要（must match），期望（should match）或不期望（must not match）指定条件。
+
+**查询账户金额在2万到3万的用户**
+
+```console
+GET /bank/_search
+{
+  "query": {
+    "bool": {
+      "must": { "match_all": {} },
+      "filter": {
+        "range": {
+          "balance": {
+            "gte": 20000,
+            "lte": 30000
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## 文档操作
+
+**创建一个文档**
+
+```console
+PUT /customer/_doc/1
+{
+  "name": "John Doe"
+}
+```
+
+>customer  文档所在的index
+>
+>_doc 文档所在的type
+>
+>1 文档的id
+>
+>{ } 文档的内容
+>
+>**如果索引不存在会自动创建**
+
+查询一个文档
+
+```
+GET /customer/_doc/1
+```
+
+批量插入文档
+
+```sh
+curl -H "Content-Type: application/json" -XPOST "localhost:9200/bank/_bulk?pretty&refresh" --data-binary "@accounts.json"
+```
+
