@@ -63,15 +63,13 @@ curl -X <VERB> '<PROTOCOL>://<HOST>:<PORT>/<PATH>?<QUERY_STRING>' -d '<BODY>'
 
 ### 创建索引
 
-
-
-### 更新索引
-
-
+### 
 
 ### 删除索引
 
-
+```
+DELETE /bank
+```
 
 ### 查询索引
 
@@ -145,6 +143,32 @@ GET /bank/_search
           "balance": {
             "gte": 20000,
             "lte": 30000
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**聚合操作**
+
+```console
+GET /bank/_search
+{
+  "size": 0,
+  "aggs": {
+    "group_by_state": {
+      "terms": {
+        "field": "state.keyword",
+        "order": {
+          "average_balance": "desc"
+        }
+      },
+      "aggs": {
+        "average_balance": {
+          "avg": {
+            "field": "balance"
           }
         }
       }
