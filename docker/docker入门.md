@@ -474,7 +474,9 @@ docker run -di --name-registry -p 5000:5000 registry
 ```
 （3）打开浏览器输入地址  [link](http:/192.168.184.141:5000/v2/_catalog )
 
-看到 {“repositories“：[]}表示私有仓库搭建成功并且内容为空
+```看到 {“repositories“：[]}表示私有仓库搭建成功并且内容为空```
+
+
 （4）修改daemon.json
 
 ```
