@@ -335,20 +335,6 @@ docker logs [OPTIONS] CONTAINER
     -t, --timestamps     显示时间戳
         --until string   显示自某个timestamp之前的日志，或相对时间，如42m（即42分钟）
 ```
-
-#### 3.2.9 从容器创建一个新的镜像。
-
-```
-docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
-OPTIONS说明：
-	-a :提交的镜像作者；
-	-c :使用Dockerfile指令来创建镜像；
-	-m :提交时的说明文字；
-	-p :在commit时，将容器暂停。
-
-例子：docker commit -a "runoob.com" -m "my apache" a404c6c174a2  mymysql:v1 
-```
-
 ## 4、应用的部署
 
 ### 4.1 gitlab安装
@@ -386,9 +372,18 @@ docker restart gitlab
 
 ### 5.1 容器保存为镜像
 我们可以通过以下命令将容器保存为镜像
+
 ```
-docker commit mynginx mynginex_1
+docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]
+OPTIONS说明：
+	-a :提交的镜像作者；
+	-c :使用Dockerfile指令来创建镜像；
+	-m :提交时的说明文字；
+	-p :在commit时，将容器暂停。
+
+例子：docker commit -a "runoob.com" -m "my apache" a404c6c174a2  mymysql:v1 
 ```
+
 ### 5.2 镜像备份
 我们可以通过以下命令将镜像保存为tar文件
 ```
