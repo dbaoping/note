@@ -101,6 +101,13 @@ vim /etc/docker/daemon.json
 }
 ```
 
+执行下面两条命令重启docker
+
+```
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
 ### 2.3 docker的启动与停止
 
 systemctl 命令是系统服务管理器指令
