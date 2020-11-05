@@ -342,6 +342,10 @@ docker logs [OPTIONS] CONTAINER
     -t, --timestamps     显示时间戳
         --until string   显示自某个timestamp之前的日志，或相对时间，如42m（即42分钟）
 ```
+到处日志到本地
+```
+docker logs --since=”20190523” 容器id >> 目录 + 文件名称.log
+```
 ## 4、应用的部署
 
 ### 4.1 gitlab安装
