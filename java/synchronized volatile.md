@@ -1,8 +1,8 @@
-## 用户态与内核态
+# 用户态与内核态
 
 JDK1.0，synchronized 叫做重量级锁， 因为申请锁资源必须通过kernel, 系统调用
 
-### 为什么要区分用户态与内核态？
+## 为什么要区分用户态与内核态？
 
 ​		在`CPU`的所有指令中，有一些指令是非常危险的，如果错用，将导致整个系统崩溃。比如：清内存、设置时钟等。所以，`CPU`将指令分为特权指令和非特权指令，对于那些危险的指令，只允许操作系统及其相关模块使用。`Intel`的`CPU`将特权级别分为4个级别：`RING0`、`RING1`、`RING2`、`RING3`。
 
@@ -21,7 +21,7 @@ JDK1.0，synchronized 叫做重量级锁， 因为申请锁资源必须通过ker
 - 2、内核态，运行于中断上下文，内核代表硬件运行于内核空间；
 - 3、用户态，运行于用户空间。
 
-### 用户态到内核态怎样切换？
+## 用户态到内核态怎样切换？
 
 从用户态到内核态切换可以通过三种方式：
 
@@ -31,7 +31,7 @@ JDK1.0，synchronized 叫做重量级锁， 因为申请锁资源必须通过ker
 
 **外设中断：**当外围设备完成用户请求的操作后，会向CPU发出相应的中断信号，这时CPU会暂停执行下一条即将要执行的指令转而去执行与中断信号对应的处理程序，如果先前执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了由用户态到内核态的切换。比如硬盘读写操作完成，系统会切换到硬盘读写的中断处理程序中执行后续操作等。
 
-## CAS
+# CAS
 
 Compare And Swap (Compare And Exchange) / 自旋 / 自旋锁 / 无锁 （无重量锁）
 
@@ -43,7 +43,7 @@ ABA问题，你的女朋友在离开你的这段儿时间经历了别的人，�
 
 解决办法（版本号 AtomicStampedReference），基础类型简单值不需要版本号
 
-## Unsafe
+## 实现原理
 
 AtomicInteger:
 
@@ -103,8 +103,6 @@ public class T02_TestUnsafe {
 
 jdk8u: unsafe.cpp:
 
-cmpxchg = compare and exchange
-
 ```c++
 UNSAFE_ENTRY(jboolean, Unsafe_CompareAndSwapInt(JNIEnv *env, jobject unsafe, jobject obj, jlong offset, jint e, jint x))
   UnsafeWrapper("Unsafe_CompareAndSwapInt");
@@ -117,7 +115,7 @@ UNSAFE_END
 jdk8u: atomic_linux_x86.inline.hpp **93行**
 
 ```c++
-inline jint     Atomic::cmpxchg    (jint     exchange_value, volatile jint*     dest, jint     compare_value) {
+inline jint Atomic::cmpxchg (jint exchange_value, volatile jint* dest, jint compare_value) {
   int mp = os::is_MP();
   __asm__ volatile (LOCK_IF_MP(%4) "cmpxchgl %1,(%3)"
                     : "=a" (exchange_value)
@@ -129,10 +127,10 @@ inline jint     Atomic::cmpxchg    (jint     exchange_value, volatile jint*     
 
 is_MP = Multi Processor  
 
-jdk8u: os.hpp is_MP()
+jdk8u: os.hpp
 
 ```c++
-  static inline bool is_MP() {
+static inline bool is_MP() {
     // During bootstrap if _processor_count is not yet initialized
     // we claim to be MP as that is safest. If any platform has a
     // stub generator that might be triggered in this phase and for
@@ -141,7 +139,7 @@ jdk8u: os.hpp is_MP()
     // the processor count directly and leave the bootstrap routine
     // in place until called after initialization has ocurred.
     return (_processor_count != 1) || AssumeMP;
-  }
+}
 ```
 
 jdk8u: atomic_linux_x86.inline.hpp
@@ -150,32 +148,30 @@ jdk8u: atomic_linux_x86.inline.hpp
 #define LOCK_IF_MP(mp) "cmp $0, " #mp "; je 1f; lock; 1: "
 ```
 
-最终实现：
-
-cmpxchg = cas修改变量值
+**最终实现：**
 
 ```assembly
 lock cmpxchg 指令
 ```
 
-硬件：
+cmpxchg = compare and exchange
 
-lock指令在执行后面指令的时候锁定一个北桥信号
+**硬件：**
 
-（不采用锁总线的方式）
+lock指令在执行后面指令的时候锁定一个北桥信号（不采用锁总线的方式）
 
 # markword
 
-# 工具：JOL = Java Object Layout
+工具：JOL = Java Object Layout
 
 ```xml
 <dependencies>
-        <dependency>
-            <groupId>org.openjdk.jol</groupId>
-            <artifactId>jol-core</artifactId>
-            <version>0.9</version>
-        </dependency>
-    </dependencies>
+    <dependency>
+        <groupId>org.openjdk.jol</groupId>
+        <artifactId>jol-core</artifactId>
+        <version>0.9</version>
+    </dependency>
+</dependencies>
 ```
 
 jdk8u: markOop.hpp
@@ -205,22 +201,81 @@ jdk8u: markOop.hpp
 
 # synchronized的横切面详解
 
-1. synchronized原理
-2. 升级过程
-3. 汇编实现
-4. vs reentrantLock的区别
+## synchronized原理
 
-## java源码层级
+### 使用
 
-synchronized(o) 
+- 修饰实例方法，对当前实例对象this加锁
 
-## 字节码层级
+    ```java
+    public class Synchronized {
+        public synchronized void husband(){
+    		// do some thing
+        }
+    }
+    ```
 
-代码块实现方式
+- 修饰静态方法，对当前类的Class对象加锁
 
-monitorenter moniterexit
+    ```java
+    public class Synchronized {
+        public void husband(){
+            synchronized(Synchronized.class){
+    			// do some thing
+            }
+        }
+    }
+    ```
 
-### 同步方法实现方式
+- 修饰代码块，指定一个加锁的对象，给对象加锁
+
+    ```java
+    public class Synchronized {
+        public void husband(){
+            synchronized(new test()){
+    			// do some thing
+            }
+        }
+    }
+    ```
+
+### 字节码层级
+
+**代码块实现方式**
+
+关联到一个monitor对象。
+
+- 当我们进入方法的时候，执行**monitorenter**，就会获取当前对象的一个所有权，这个时候monitor进入数为1，当前的这个线程就是这个monitor的owner。
+- 如果你已经是这个monitor的owner了，你再次进入，就会把进入数+1.
+- 同理，当他执行完**monitorexit**，对应的进入数就-1，直到为0，才可以被其他线程持有。
+
+所有的互斥，其实在这里，就是看你能否获得monitor的所有权，一旦你成为owner就是获得者。
+
+ObjectMonitor.hpp
+
+```c++
+ObjectMonitor() {
+    _header       = NULL;
+    _count        = 0;
+    _waiters      = 0,
+    _recursions   = 0;     // 线程重入次数
+    _object       = NULL;  // 存储Monitor对象
+    _owner        = NULL;  // 持有当前线程的owner
+    _WaitSet      = NULL;  // wait状态的线程列表
+    _WaitSetLock  = 0 ;
+    _Responsible  = NULL ;
+    _succ         = NULL ;
+    _cxq          = NULL ;  // 单向列表
+    FreeNext      = NULL ;
+    _EntryList    = NULL ;  // 处于等待锁状态block状态的线程列表
+    _SpinFreq     = 0 ;
+    _SpinClock    = 0 ;
+    OwnerIsThread = 0 ;
+    _previous_owner_tid = 0;
+}
+```
+
+**同步方法实现方式**
 
 - 同步方法的实现不是基于monitorenter和monitorexit指令来实现的
 
@@ -228,7 +283,7 @@ monitorenter moniterexit
 
 - 当一个方法有这个标志的时候，进入的线程首先需要获得监视器才能执行该方法
 
-## JVM层级（Hotspot）
+### JVM层级（Hotspot）
 
 ```java
 package com.mashibing.insidesync;
@@ -295,8 +350,6 @@ IRT_END
 
 synchronizer.cpp
 
-revoke_and_rebias
-
 ```c++
 void ObjectSynchronizer::fast_enter(Handle obj, BasicLock* lock, bool attempt_rebias, TRAPS) {
  if (UseBiasedLocking) {
@@ -357,15 +410,15 @@ void ObjectSynchronizer::slow_enter(Handle obj, BasicLock* lock, TRAPS) {
 
 inflate方法：膨胀为重量级锁
 
-# 锁升级过程
+## 锁升级过程
+
+无锁 -> 偏向锁 -> 轻量级锁 -> 重量级锁
 
 ## JDK8 markword实现表：
 
 ![markword](./markword.png)
 
 
-
-new - 偏向锁 - 轻量级锁 （无锁, 自旋锁，自适应自旋）- 重量级锁
 
 synchronized优化的过程和markword息息相关
 
@@ -517,7 +570,7 @@ ObjectMonitor中有两个队列，_WaitSet 和 _EntryList，用来保存ObjectWa
 
 由此看来，monitor对象存在于每个Java对象的对象头中(存储的指针的指向)，synchronized锁便是通过这种方式互斥的。
 
-## synchronized vs Lock (CAS)
+# synchronized vs Lock (CAS)
 
 ```
  在高争用 高耗时的环境下synchronized效率更高
@@ -576,7 +629,7 @@ http://openjdk.java.net/groups/hotspot/docs/HotSpotGlossary.html
 
 # volatile的用途
 
-## 1.线程可见性
+## 1、线程可见性
 
 ```java
 package com.mashibing.testvolatile;
@@ -600,11 +653,11 @@ public class T01_ThreadVisibility {
 }
 ```
 
-## 2.防止指令重排序
+## 2、防止指令重排序
 
-### 问题：DCL单例需不需要加volatile？
+**问题：DCL单例需不需要加volatile？**
 
-### CPU的基础知识
+CPU的基础知识
 
 * 缓存行对齐
   缓存行64个字节是CPU同步的基本单位，缓存行隔离会比伪共享效率要高
