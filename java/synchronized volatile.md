@@ -461,8 +461,8 @@ JDK较早的版本 OS的资源 互斥量 用户态 -> 内核态的转换 重量�
 ## synchronized最底层实现
 
 ```java
-
 public class T {
+    
     static volatile int i = 0;
     
     public static void n() { i++; }
