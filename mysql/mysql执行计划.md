@@ -106,7 +106,7 @@ explain select staname,ename supname from (select ename staname,mgr from emp) t 
 
 **type**
 
-type显示的是访问类型，访问类型表示我是以何种方式去访问我们的数据，最容易想的是全表扫描，直接暴力的遍历一张表去寻找需要的数据，效率非常低下，访问的类型有很多，效率从最好到最坏依次是：
+​		type显示的是访问类型，访问类型表示我是以何种方式去访问我们的数据，最容易想的是全表扫描，直接暴力的遍历一张表去寻找需要的数据，效率非常低下，访问的类型有很多，效率从最好到最坏依次是：
 
 system > const > eq_ref > ref > fulltext > ref_or_null > index_merge > unique_subquery > index_subquery > range > index > ALL 
 
@@ -164,7 +164,7 @@ explain select * from emp,dept where emp.deptno = dept.deptno and emp.deptno = 1
 
 **key_len**
 
-表示索引中使用的字节数，可以通过key_len计算查询中使用的索引长度，在不损失精度的情况下长度越短越好。
+​		表示索引中使用的字节数，可以通过key_len计算查询中使用的索引长度，在不损失精度的情况下长度越短越好。
 
 ```sql
 explain select * from emp,dept where emp.deptno = dept.deptno and emp.deptno = 10;
@@ -172,7 +172,7 @@ explain select * from emp,dept where emp.deptno = dept.deptno and emp.deptno = 1
 
 **ref**
 
-显示索引的哪一列被使用了，如果可能的话，是一个常数
+​		显示索引的哪一列被使用了，如果可能的话，是一个常数
 
 ```sql
 explain select * from emp,dept where emp.deptno = dept.deptno and emp.deptno = 10;
@@ -180,7 +180,7 @@ explain select * from emp,dept where emp.deptno = dept.deptno and emp.deptno = 1
 
 **rows**
 
-根据表的统计信息及索引使用情况，大致估算出找出所需记录需要读取的行数，此参数很重要，直接反应的sql找了多少数据，在完成目的的情况下越少越好
+​		根据表的统计信息及索引使用情况，大致估算出找出所需记录需要读取的行数，此参数很重要，直接反应的sql找了多少数据，在完成目的的情况下越少越好
 
 ```sql
 explain select * from emp;
@@ -188,7 +188,7 @@ explain select * from emp;
 
 **extra**
 
-包含额外的信息。
+​		包含额外的信息。
 
 ```sql
 --using filesort:说明mysql无法利用索引进行排序，只能利用排序算法进行排序，会消耗额外的位置
