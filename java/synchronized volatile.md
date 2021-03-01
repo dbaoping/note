@@ -581,8 +581,6 @@ ObjectMonitor中有两个队列，_WaitSet 和 _EntryList，用来保存ObjectWa
  一切以实测为准
 ```
 
-
-
 # 锁消除 lock eliminate
 
 ```java
@@ -656,129 +654,6 @@ public class T01_ThreadVisibility {
 ## 2、防止指令重排序
 
 **问题：DCL单例需不需要加volatile？**
-
-CPU的基础知识
-
-* 缓存行对齐
-  缓存行64个字节是CPU同步的基本单位，缓存行隔离会比伪共享效率要高
-  Disruptor
-
-  ```java
-  package com.mashibing.juc.c_028_FalseSharing;
-  
-  public class T02_CacheLinePadding {
-      private static class Padding {
-          public volatile long p1, p2, p3, p4, p5, p6, p7; //
-      }
-  
-      private static class T extends Padding {
-          public volatile long x = 0L;
-      }
-  
-      public static T[] arr = new T[2];
-  
-      static {
-          arr[0] = new T();
-          arr[1] = new T();
-      }
-  
-      public static void main(String[] args) throws Exception {
-          Thread t1 = new Thread(()->{
-              for (long i = 0; i < 1000_0000L; i++) {
-                  arr[0].x = i;
-              }
-          });
-  
-          Thread t2 = new Thread(()->{
-              for (long i = 0; i < 1000_0000L; i++) {
-                  arr[1].x = i;
-              }
-          });
-  
-          final long start = System.nanoTime();
-          t1.start();
-          t2.start();
-          t1.join();
-          t2.join();
-          System.out.println((System.nanoTime() - start)/100_0000);
-      }
-  }
-  
-  ```
-
-  MESI
-
-* 伪共享
-
-* 合并写
-  CPU内部的4个字节的Buffer
-
-  ```java
-  package com.mashibing.juc.c_029_WriteCombining;
-  
-  public final class WriteCombining {
-  
-      private static final int ITERATIONS = Integer.MAX_VALUE;
-      private static final int ITEMS = 1 << 24;
-      private static final int MASK = ITEMS - 1;
-  
-      private static final byte[] arrayA = new byte[ITEMS];
-      private static final byte[] arrayB = new byte[ITEMS];
-      private static final byte[] arrayC = new byte[ITEMS];
-      private static final byte[] arrayD = new byte[ITEMS];
-      private static final byte[] arrayE = new byte[ITEMS];
-      private static final byte[] arrayF = new byte[ITEMS];
-  
-      public static void main(final String[] args) {
-  
-          for (int i = 1; i <= 3; i++) {
-              System.out.println(i + " SingleLoop duration (ns) = " + runCaseOne());
-              System.out.println(i + " SplitLoop  duration (ns) = " + runCaseTwo());
-          }
-      }
-  
-      public static long runCaseOne() {
-          long start = System.nanoTime();
-          int i = ITERATIONS;
-  
-          while (--i != 0) {
-              int slot = i & MASK;
-              byte b = (byte) i;
-              arrayA[slot] = b;
-              arrayB[slot] = b;
-              arrayC[slot] = b;
-              arrayD[slot] = b;
-              arrayE[slot] = b;
-              arrayF[slot] = b;
-          }
-          return System.nanoTime() - start;
-      }
-  
-      public static long runCaseTwo() {
-          long start = System.nanoTime();
-          int i = ITERATIONS;
-          while (--i != 0) {
-              int slot = i & MASK;
-              byte b = (byte) i;
-              arrayA[slot] = b;
-              arrayB[slot] = b;
-              arrayC[slot] = b;
-          }
-          i = ITERATIONS;
-          while (--i != 0) {
-              int slot = i & MASK;
-              byte b = (byte) i;
-              arrayD[slot] = b;
-              arrayE[slot] = b;
-              arrayF[slot] = b;
-          }
-          return System.nanoTime() - start;
-      }
-  }
-  
-  ```
-
-  
 
 * 指令重排序
 
