@@ -43,7 +43,7 @@
 	AMQP（advanced message queuing protoco1）在2003年时被提出，最早用于解决金融领不同平台之间的消息传递交互问题。顾名思义，AMQP是一种协议，更准确的说是一种binary wire-1evel protocol（链接协议）。这是其和JMS的本质差别，AMQP不从API层进行限定，而是直接定义网络交换的数据格式。这使得实现了AMQP的provider天然性就是跨平台的。以下是AMQP协议模型：
 ```
 
-![QQ截图20210314232409](C:\Users\X1 Carbon\Desktop\QQ截图20210314232409.png)
+![QQ截图20210314232409](rabbitmq.png)
 
 ### 2.2 RabbitMQ的安装
 
