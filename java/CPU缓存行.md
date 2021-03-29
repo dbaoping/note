@@ -140,7 +140,7 @@ L1的数据缓存32KBytes分为了8-way，那么每一路就是4KBytes.
 
 这里简单阐述一下：我们主存有个x=0的值，处理器有两个cpu0，cpu1
 
-- c**pu0读x的值**，cpu0先在cpu0缓存找，找不到，有一个**地址总线**，就是路由cpu的和主存，同时去**cpu和主存找**，比较版本，去主存拿x，拿到x的值通过**数据总线**将值赋值cpu0的缓存
+- **cpu0读x的值**，cpu0先在cpu0缓存找，找不到，有一个**地址总线**，就是路由cpu的和主存，同时去**cpu和主存找**，比较版本，去主存拿x，拿到x的值通过**数据总线**将值赋值cpu0的缓存
 - ![图片](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1a9d4a58df134a2c96266fedaed5ace6~tplv-k3u1fbpfcp-zoom-1.image)
 - **cpu0对x+1写**，直接获取cpu0的x=0，进行加1（这里不会更新主存，也不会更新cpu1的缓存，cpu1缓存还没有x的值）
 - ![图片](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4798d22ecae64b8dad23c9df15731651~tplv-k3u1fbpfcp-zoom-1.image)
