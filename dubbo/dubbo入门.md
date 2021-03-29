@@ -8,9 +8,9 @@ RPC【Remote Procedure Call】是指远程过程调用，是一种进程间通�
 
 ### 2、RPC原理
 
-![image-20210329151208449](image-20210329151208449.png)
+![image-20210329151208449](pic/image-20210329151208449.png)
 
-![image-20210329151218850](image-20210329151218850.png)
+![image-20210329151218850](pic/image-20210329151218850.png)
 
 **RPC两个核心模块：通讯，序列化。**
 
@@ -47,7 +47,7 @@ Apache Dubbo 是一款高性能、轻量级的开源Java RPC框架，它提供�
 
 ### 2、基本概念
 
-![image-20210329151536250](image-20210329151536250.png)
+![image-20210329151536250](pic/image-20210329151536250.png)
 
 **服务提供者（Provider）**：暴露服务的服务提供方，服务提供者在启动时，向注册中心注册自己提供的服务。
 
@@ -72,3 +72,53 @@ Apache Dubbo 是一款高性能、轻量级的开源Java RPC框架，它提供�
 - 服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
 
 ### 4、环境搭建
+
+#### 4.1、安装zookeeper
+
+#### 4.1、配置zookeeper
+
+### 5、与spring boot整合
+
+在 provider 和 consumer 中增加 dubbo 和 zookeeper 客户端 jar 包依赖：
+
+```xml
+<!-- 引入dubbo-starter -->
+<dependency>
+    <groupId>org.apache.dubbo</groupId>
+    <artifactId>dubbo-spring-boot-starter</artifactId>
+    <version>2.7.4.1</version>
+</dependency>
+<!-- 由于我们使用zookeeper作为注册中心， -->
+<dependency>
+    <groupId>org.apache.zookeeper</groupId>
+    <artifactId>zookeeper</artifactId>
+    <version>3.5.6</version>
+</dependency>
+```
+
+application.properties 中配置
+
+```
+# 超时时间 单位毫秒
+dubbo.config-center.timeout=60000;
+# 包扫描路径
+dubbo.scan.base-packages=com.vip8.itemcenter.service,com.vip8.flownumber.service;
+# 服务名称
+dubbo.application.name=itemcenter;
+
+dubbo.consumer.check=false;
+# 协议名称
+dubbo.protocol.name=dubbo;
+# 协议端口
+dubbo.protocol.port=20880;
+# 配置中心地址
+dubbo.config-center.address=zookeeper://dev.zookeeper.xinc818.com:2181;
+# 注册中心地址
+dubbo.registry.address=zookeeper://dev.zookeeper.xinc818.com:2181;
+
+dubbo.registry.check=false;
+dubbo.registry.register=false;
+```
+
+
+
