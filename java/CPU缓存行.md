@@ -61,7 +61,7 @@ L1的速度是主存的约27~36倍，L1、L2都是KB级别的，L3是M级别的�
 
 **那有没有L0呢？**
 
-答案是：有的。现代CPU通常还具有非常小的“ L0”高速缓存，其大小通常只有几KB，用于存储微操作。AMD和Intel都使用这种缓存。Zen的缓存为2,048 µOP，而Zen 2的缓存为4,096 µOP。这些微小的缓存池在与L1和L2相同的通用原则下运行，但是代表的是甚至**更小的内存**池，CPU可以以**比L1更低的延迟**来访问它们。通常，公司会相互调整这些功能。Zen 1和Zen +（Ryzen 1xxx，2xxx，3xxx APU）具有一个64KB L1指令高速缓存，该指令高速缓存是4路关联的，并具有一个2,048 µOP L0高速缓存。Zen 2（Ryzen 3xxx台式机CPU，Ryzen Mobile 4xxx）具有一个32KB L1指令高速缓存，该指令高速缓存是8路关联的，并且具有4,096 µOP高速缓存。将设置的关联性和µOP缓存的大小加倍，可以使AMD将L1缓存的大小减少一半。
+答案是：有的。现代CPU通常还具有非常小的“L0”高速缓存，其大小通常只有几KB，用于存储微操作。AMD和Intel都使用这种缓存。Zen的缓存为2,048 µOP，而Zen 2的缓存为4,096 µOP。这些微小的缓存池在与L1和L2相同的通用原则下运行，但是代表的是甚至**更小的内存**池，CPU可以以**比L1更低的延迟**来访问它们。通常，公司会相互调整这些功能。Zen 1和Zen +（Ryzen 1xxx，2xxx，3xxx APU）具有一个64KB L1指令高速缓存，该指令高速缓存是4路关联的，并具有一个2,048 µOP L0高速缓存。Zen 2（Ryzen 3xxx台式机CPU，Ryzen Mobile 4xxx）具有一个32KB L1指令高速缓存，该指令高速缓存是8路关联的，并且具有4,096 µOP高速缓存。将设置的关联性和µOP缓存的大小加倍，可以使AMD将L1缓存的大小减少一半。
 
 **说了这么多，cpu缓存到底是怎么工作的嘛？**
 
@@ -212,8 +212,8 @@ public class CpuCache {
 但是别忘记了CPU加载时一个Cache line 64Bytes来加载的，所以他们无论加2还是加8他们的消耗的时间都是差不多的，我的机器耗时是：
 
 ```
-48
-36
+45
+31
 ```
 
 ## 五、队列伪共享
@@ -277,7 +277,7 @@ public class FalseShare implements Runnable {
 }
 ```
 
-代码的逻辑是默认**4个线程修改一数组不同元素的内容**.  元素的类型是**VolatileLong**, 只有一个长整型成员value和6个没用到的长整型成员. value设为volatile是为了让value的修改所有线程都可见
+代码的逻辑是默认**4个线程修改一数组不同元素的内容**.  元素的类型是**Volatile Long**, 只有一个长整型成员value和6个没用到的长整型成员. value设为volatile是为了让value的修改所有线程都可见
 
 当我线程设置为4时：第50行代码，有6个长整型，运行了13s，反而在只有4个长整型是只有9s，当注释掉第50行时，运行了24s。发现这个测试结果有点蹊跷。
 
@@ -291,7 +291,7 @@ public class FalseShare implements Runnable {
 
 一个运行在处理器**core 1**上的线程想要**更新变量X**的值, 同时另外一个运行在处理器**core 2**上的线程想要**更新变量Y**的值. 但是, 这两个频繁改动的变量都处于**同一条缓存行**. 两个线程就会轮番**发送RFO**消息, 占得此**缓存行的拥有权**.
 
-表面上X和Y都是被独立线程操作的, 而且两操作之间也没有任何关系.只不过它们**共享了一个缓存行**, 但所有竞争冲突都是来源于共享.
+表面上X和Y都是被独立线程操作的, 而且两操作之间也没有任何关系，只不过它们**共享了一个缓存行**，但所有竞争冲突都是来源于共享.
 
 根据上面代码实例，简单的说，我们对数组操作时，**一个对象8字节(32位系统)或12字节(64位系统）**，如果加了**6个long整型=48个字节**，这样就可以让**不同对象都用一个缓存行**，就可以避免缓存行频繁发送RFO消息共享缓存行，减少竞争，那为什么我们测试出来的数据有问题？当有6个long反而比4个long还消耗时间。
 
@@ -315,56 +315,56 @@ Padded-AtomicReference也是一个伪命题，如果激励竞争，为什么不�
 
 ```java
 public class FalseShare implements Runnable {
-        public static int NUM_THREADS = 2; // change
-        public final static long ITERATIONS = 500L * 1000L * 1000L;
-        private final int arrayIndex;
-        private static VolatileLong[] longs;
+    public static int NUM_THREADS = 2; // change
+    public final static long ITERATIONS = 500L * 1000L * 1000L;
+    private final int arrayIndex;
+    private static VolatileLong[] longs;
 
-        public FalseShare(final int arrayIndex) {
-            this.arrayIndex = arrayIndex;
+    public FalseShare(final int arrayIndex) {
+        this.arrayIndex = arrayIndex;
+    }
+
+    public static void main(final String[] args) throws Exception {
+        Thread.sleep(1000);
+        System.out.println("starting....");
+        if (args.length == 1) {
+            NUM_THREADS = Integer.parseInt(args[0]);
         }
 
-        public static void main(final String[] args) throws Exception {
-            Thread.sleep(1000);
-            System.out.println("starting....");
-            if (args.length == 1) {
-                NUM_THREADS = Integer.parseInt(args[0]);
-            }
-
-            longs = new VolatileLong[NUM_THREADS];
-            for (int i = 0; i < longs.length; i++) {
-                longs[i] = new VolatileLong();
-            }
-            final long start = System.currentTimeMillis();
-            runTest();
-            System.out.println("duration = " + (System.currentTimeMillis() - start));
+        longs = new VolatileLong[NUM_THREADS];
+        for (int i = 0; i < longs.length; i++) {
+            longs[i] = new VolatileLong();
         }
+        final long start = System.currentTimeMillis();
+        runTest();
+        System.out.println("duration = " + (System.currentTimeMillis() - start));
+    }
 
-        private static void runTest() throws InterruptedException {
-            Thread[] threads = new Thread[NUM_THREADS];
-            for (int i = 0; i < threads.length; i++) {
-                threads[i] = new Thread(new FalseShare(i));
-            }
-            for (Thread t : threads) {
-                t.start();
-            }
-            for (Thread t : threads) {
-                t.join();
-//                System.out.println(t);
-            }
+    private static void runTest() throws InterruptedException {
+        Thread[] threads = new Thread[NUM_THREADS];
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new Thread(new FalseShare(i));
         }
+        for (Thread t : threads) {
+            t.start();
+        }
+        for (Thread t : threads) {
+            t.join();
+            //                System.out.println(t);
+        }
+    }
 
-        public void run() {
-            long i = ITERATIONS + 1;
-            while (0 != --i) {
-                longs[arrayIndex].value = i;
-            }
+    public void run() {
+        long i = ITERATIONS + 1;
+        while (0 != --i) {
+            longs[arrayIndex].value = i;
         }
+    }
 
-        public final static class VolatileLong {
-            public volatile long value = 0L;
-            public long p1, p2, p3, p4, p5, p6;//, p7, p8, p9;
-        }
+    public final static class VolatileLong {
+        public volatile long value = 0L;
+        public long p1, p2, p3, p4, p5, p6;//, p7, p8, p9;
+    }
 }
 ```
 
