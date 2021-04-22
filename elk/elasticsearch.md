@@ -119,7 +119,7 @@ ES可自动在节点间按需要移动shard，例如增加节点或节点故障�
 
 - **统计全部信息**
 
-    ```
+    ```http
     GET /_cluster/stats?human&pretty
     ```
 
@@ -130,14 +130,6 @@ ES可自动在节点间按需要移动shard，例如增加节点或节点故障�
 ## 4.2、关于文档的操作
 
 
-
-
-
-
-
-
-
-## 查看集群健康情况
 
 ```console
 GET /_cat/health?v
@@ -301,4 +293,45 @@ GET /customer/_doc/1
 ```sh
 curl -H "Content-Type: application/json" -XPOST "localhost:9200/bank/_bulk?pretty&refresh" --data-binary "@accounts.json"
 ```
+
+
+
+聚合查询
+
+```json
+{
+    "aggs" : { // 聚合操作
+        "live_group" : { // 名称。随便取
+            "terms" : { // 分组  avg-平均值
+                "field" : "first_category" // 分组字段
+            }
+        }
+    },
+    "size" : 0 // 结果不返回原始数据
+}
+
+```
+
+映射关系
+
+```json
+{
+	"properties" : { // 映射关系关键字
+		"name" : {	// 字段名称
+			"type" : "text", // test可以被分词
+			"index" : true // 是否能被搜索
+		},
+		"sex" : {
+            "type" : "keyword", // 不能被分词，只能被完全匹配
+            "index" : true
+        },
+        "tel" : {
+            "type" : "keyword",
+            "index" : false
+        }
+	}
+}
+```
+
+
 
