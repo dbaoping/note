@@ -174,41 +174,41 @@ _**以下命令均使用Kibana查询**_
     GET /_cat
     ```
 
-> 每个命令都支持使用?v参数，来显示表头。
->
-> ```http
-> GET /_cat/nodes?v
-> ```
->
-> 每个命令都支持使用help参数，来输出可以显示的列。
->
-> ```http
-> GET /_cat/nodes?help
-> ```
->
-> 通过h参数，可以指定输出的字段。
->
-> ```http
-> GET /_cat/nodes?h=id,pid,version
-> ```
->
-> 使用管道命令将结果传递给其他工具，比如 `sort` 、 `grep` 或者 `awk`
->
-> ```sh
-> curl 'localhost:9200/_cat/indices?bytes=b' | sort -rnk8
-> ```
->
-> 使用bytes参数，返回可读性的大小数字，比如使用mb或者kb来表示。b表示已字节输出。
->
-> ```http
-> GET /_cat/indices?bytes=b
-> ```
->
-> 使用pretty参数，格式化返回json的
->
-> ```http
-> GET /bank/_search?pretty
-> ```
+    > 每个命令都支持使用?v参数，来显示表头。
+    >
+    > ```http
+    > GET /_cat/nodes?v
+    > ```
+    >
+    > 每个命令都支持使用help参数，来输出可以显示的列。
+    >
+    > ```http
+    > GET /_cat/nodes?help
+    > ```
+    >
+    > 通过h参数，可以指定输出的字段。
+    >
+    > ```http
+    > GET /_cat/nodes?h=id,pid,version
+    > ```
+    >
+    > 使用管道命令将结果传递给其他工具，比如 `sort` 、 `grep` 或者 `awk`
+    >
+    > ```sh
+    > curl 'localhost:9200/_cat/indices?bytes=b' | sort -rnk8
+    > ```
+    >
+    > 使用bytes参数，返回可读性的大小数字，比如使用mb或者kb来表示。b表示已字节输出。
+    >
+    > ```http
+    > GET /_cat/indices?bytes=b
+    > ```
+    >
+    > 使用pretty参数，格式化返回json的
+    >
+    > ```http
+    > GET /bank/_search?pretty
+    > ```
 
 - **查看所有节点信息**
 
@@ -611,7 +611,7 @@ PUT /bank/_mapping
 }
 ```
 
-### 4.4、分词结果
+### 4.4、分词结果分析
 
 ```http
 GET /_analyze
