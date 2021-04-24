@@ -335,176 +335,203 @@ curl -u elastic -H "Content-Type: application/json" -XPOST "IP:9200/accounts/_bu
 
 **注1：** ***test为索引名称。***
 
-**注2：** ***7.x默认type为`_doc`，可以省略不写。（8.x以后可能要去掉type）***
+**注2：** ***7.x默认type为`_doc`，可以省略不写。（8.x以后可能要去掉 type）***
 
 **注3：** ***accounts.json下载地址*** [accounts.json](https://github.com/elastic/elasticsearch/blob/7.7/docs/src/test/resources/accounts.json)
 
+- **打开/关闭索引**
+
+```http
+POST /test/_close
+POST /test/_open
+```
+
 ### 4.3、关于文档的操作
 
+- **新增文档**
 
-
-
-
-
-
-
-
-**查询bank下面所有的文档**
-
-```console
-GET /bank/_search
+```http
+POST /test/_doc/1
 {
-  "query": { "match_all": {} },
-  "sort": [
-    { "account_number": "asc" }
-  ]
+	"name": "John Doe"	// 字段名称：值
 }
 ```
 
-**分页查询**
+>**注释：**
+>
+>- ##### 使用PUT来创建文档，需要指定id
+>
+>- ##### 使用POST来创建文档，可以不指定id（不指定时随机生成id），指定 id存在就会修改这个数据，并新增版本号；
+>
+>- test表示索引名称。
+>
+>
+>- _doc表示类型。
+>- **如果索引不存在会自动创建**
 
-```console
-GET /bank/_search
+
+- **删除文档**
+
+```http
+DELETE /test/_doc/1
+```
+
+- **替换文档**
+
+```http
+PUT /test/_doc/1
 {
-  "query": { "match_all": {} },
-  "sort": [
-    { "account_number": "asc" }
-  ],
-  "from": 10, # 开始的位置
-  "size": 10  # 查询的总条数
+	"name": "John d"
 }
 ```
 
-**查询address中有mill或lane的数据**
 
-```console
+- **修改文档**
+
+```http
+POST /test/_update/1
+{
+	"doc": {
+		"name": "中文名称"
+	}
+}
+```
+
+
+- **查询accounts下面所有的文档**
+
+```http
 GET /bank/_search
 {
-  "query": { "match": { "address": "mill lane" } }
+	"query": { "match_all": {} },
+}
+```
+
+- **主键查询文档**
+
+```http
+GET /bank/_doc/1
+```
+
+- **分页、排序查询**
+
+```http
+GET /bank/_search
+{
+	"query": { "match_all": {} },
+    "sort": [
+    	{ 
+    		"account_number": "asc" 
+    	}
+    ],
+    "from": 10, # 开始的位置
+    "size": 10  # 查询的总条数
+}
+```
+
+- **匹配、高亮数据**
+
+```http
+GET /bank/_search
+{
+	"query": { 
+		"match": { 
+			"address": "mill lane" 
+		} 
+	},
+	"shighlight": {	// 高亮查询
+		"fields": {	
+			"address": {}	// 高亮的字段名称
+		}
+	},
+	"_source": ["account_number", "address"]  // 设置返回的字段名称
 }
 ```
 
 > 要执行词组搜索而不是匹配单个词，请使用 `match_phrase`代替`match`
 
-**属于40岁客户的帐户，但不包括居住在爱达荷州（ID）的任何人**
+- **构建复杂查询**
 
-```console
+```http
 GET /bank/_search
 {
-  "query": {
-    "bool": {
-      "must": [
-        { "match": { "age": "40" } }
-      ],
-      "must_not": [
-        { "match": { "state": "ID" } }
-      ]
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "match": {
+                        "age": "40"
+                    }
+                }
+            ],
+            "must_not": [
+                {
+                    "match": {
+                        "state": "ID"
+                    }
+                }
+            ]
+        }
     }
-  }
 }
 ```
 
 要构造更复杂的查询，可以使用`bool`查询来组合多个查询条件。您可以根据需要（must match），期望（should match）或不期望（must not match）指定条件。
 
-**查询账户金额在2万到3万的用户**
+- **范围查询**
 
-```json
+```http
 GET /bank/_search
 {
-  "query": {
-    "bool": {
-      "must": { "match_all": {} },
-      "filter": {
-        "range": {
-          "balance": {
-            "gte": 20000,
-            "lte": 30000
-          }
+    "query": {
+        "bool": {
+            "must": {
+                "match_all": {}
+            },
+            "filter": {
+                "range": {
+                    "balance": {
+                        "gte": 20000,
+                        "lte": 30000
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
 ```
 
-**聚合操作**
+- **聚合操作**
 
-```console
+```http
 GET /bank/_search
 {
-  "size": 0,
-  "aggs": {
-    "group_by_state": {
-      "terms": {
-        "field": "state.keyword",
-        "order": {
-          "average_balance": "desc"
-        }
-      },
-      "aggs": {
-        "average_balance": {
-          "avg": {
-            "field": "balance"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-**创建一个文档**
-
-```console
-PUT /customer/_doc/1
-{
-  "name": "John Doe"
-}
-```
-
->customer  文档所在的index
->
->_doc 文档所在的type
->
->1 文档的id
->
->{ } 文档的内容
->
->**如果索引不存在会自动创建**
-
-查询一个文档
-
-```
-GET /customer/_doc/1
-```
-
-批量插入文档
-
-```sh
-
-```
-
-
-
-聚合查询
-
-```json
-{
-    "aggs" : { // 聚合操作
-        "live_group" : { // 名称。随便取
-            "terms" : { // 分组  avg-平均值
-                "field" : "first_category" // 分组字段
+    "size": 0,
+    "aggs": {
+        "group_by_state": {
+            "terms": {	// terms-分组
+                "field": "state.keyword",
+                "order": {
+                    "average_balance": "desc"
+                }
+            },
+            "aggs": {		// 聚合操作
+                "average_balance": { // 名称。随便取
+                    "avg": {		 // avg-算平均值，
+                        "field": "balance"	// 计算的字段
+                    }
+                }
             }
         }
     },
-    "size" : 0 // 结果不返回原始数据
+	"size" : 0 // 结果不返回原始数据
 }
-
 ```
 
-映射关系
+- **设置映射关系**
 
 ```json
+PUT /bank/_mapping
 {
 	"properties" : { // 映射关系关键字
 		"name" : {	// 字段名称
