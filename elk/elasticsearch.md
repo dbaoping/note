@@ -485,6 +485,8 @@ GET /bank/_search
 		} 
 	},
 	"highlight": {	// 高亮查询
+		"pre_tags": ["<tag1>", "<tag2>"],
+    	"post_tags": ["</tag1>", "</tag2>"],
 		"fields": {	
 			"address": {	// 高亮的字段名称
 				"type": "plain"  // unified（默认），plain和fvh（fast vector highlighter）
@@ -722,3 +724,426 @@ POST /accounts/_mget
 }
 ```
 
+## 五、DSL查询
+
+#### match
+
+>match是一个标准查询，当查询一个文本的时候，会先将文本分词。当查询确切值的时候，会搜索给定的值，例如数字、日期、布尔或者被not_analyzed的字符串。
+>
+>```json
+>{
+>    "query": {
+>        "match": {
+>            "name": "小明"
+>        }
+>    }
+>}
+>```
+>
+>上面的操作会先将“小明”分词为“小”、“明”（当然具体还要看你的分词器），然后再去所有文档中查找与之相匹配的文档，并根据关联度排序返回。
+
+#### match_phrase
+
+>match_phrase会保留空格，match会把空格忽略。
+>
+>```json
+>{
+>    "query": {
+>        "match_phrase": {
+>            "name": "小 明"
+>        }
+>    }
+>}
+>```
+>
+>注意，分词是空格会给前一个元素，比如上面的字符串分子之后是，“小 ”，“明”。
+
+#### multi_match
+
+>多字段查询，一个查询条件，看所有多个字段是否有与之匹配的字段。后面我们也可以使用`should`更加灵活。
+>
+>```json
+>{
+>    "query": {
+>        "multi_match": {
+>            "query": "哈哈",
+>            "fields": ["name", "city"]
+>        }
+>    }
+>}
+>```
+
+#### match_all
+
+>匹配所有，并可设置这些文档的`_score`，默认`_score`为1，这里没有计算`_score`，所以速度会快很多。
+>
+>```json
+>{
+>    "query": {
+>        "match_all": {
+>            "boost": 1.2
+>        }
+>    }
+>}
+>```
+>
+>`boost`参数可以省略，默认是1。
+
+#### term
+
+>term是一种完全匹配，主要用于精确查找，例如数字、ID、邮件地址等。
+>
+>```json
+>{
+>    "query": {
+>        "term": {
+>            "age": 18
+>        }
+>    }
+>}
+>```
+
+#### terms
+
+>terms是term多条件查询，参数可以传递多个，以数组的形式表示。
+>
+>```json
+>{
+>        "query": {
+>             "terms": {
+>                 "age": [18, 21]
+>             }
+>        }
+>}
+>```
+
+#### wildcard
+
+>通配符，看示例容易理解，通配符可以解决分词匹配不到的问题，例如'haha' 可以通过'*a'匹配。
+>
+>```json
+>{
+>        "query": {
+>             "wildcard": {
+>                 "name": "*a"
+>             }
+>        }
+>}
+>```
+
+#### exists
+
+>查看某文档是否有某属性，返回包含这个`Filed`的文档。
+>
+>```json
+>{
+>        "query": {
+>             "exists": {
+>                 "field": "name"
+>             }
+>        }
+>}
+>```
+
+#### fuzzy
+
+>返回与查询条件相同或者相似的匹配内容。
+>
+>```json
+>{
+>        "query": {
+>             "fuzzy": {
+>                 "name": "mjjlt"
+>             }
+>        }
+>}
+>```
+>
+>搜索条件是`mjjlt`，可以搜出来name为`pjjlt`的文档。
+
+#### ids
+
+>多id查询，这个id是主键id，即你规定或者自动生成那个。
+>
+>```json
+>{
+>        "query": {
+>             "ids": {
+>                 "values": [1, 2, 3]
+>             }
+>        }
+>}
+>```
+
+#### prefix
+
+>前缀匹配
+>
+>```json
+>{
+>        "query": {
+>             "prefix": {
+>                 "name": "pj"
+>             }
+>        }
+>}
+>```
+
+#### range
+
+>范围匹配。参数可以是 **gt**(大于)、**gte**(大于等于)、**lt**(小于)、**lte**(小于等于)
+>
+>```json
+>{
+>        "query": {
+>             "range": {
+>                 "age": {
+>                     "gt": 1,
+>                     "lt": 30
+>                 }
+>             }
+>        }
+>}
+>```
+
+#### regexp
+
+>正则匹配。value是正则表达式，flags是匹配格式，默认是ALL，开启所有。更多格式[请戳](https://www.elastic.co/guide/en/elasticsearch/reference/7.x/regexp-syntax.html#regexp-optional-operators)
+>
+>```json
+>{
+>        "query": {
+>             "regexp": {
+>                 "name": {
+>                     "value": "p.*t",
+>                     "flags": "ALL"
+>                 }
+>             }
+>        }
+>}
+>```
+
+#### bool
+
+>bool 可以用来组合其他子查询。其中常包含的子查询包含：must、filter、should、must_not
+
+- **must**
+
+    > `must`内部的条件必须包含，内部条件是`and`的关系。如查看所有name中包含“小”并且age是32的用户文档。
+    >
+    > ```json
+    > {
+    >     "query": {
+    >         "bool": {
+    >             "must": [
+    >                 {
+    >                     "term": {
+    >                         "name": "小"
+    >                     }
+    >                 },
+    >                 {
+    >                     "term": {
+    >                         "age": 32
+    >                     }
+    >                 }
+    >             ]
+    >         }
+    >     }
+    > }
+    > ```
+
+- **filter**
+
+    >`filter`是文档通过一些条件过滤下，这是四个关键词中唯一**和关联度无关的，不会计算_score**，经常使用的过滤器会产生缓存。
+    >
+    >```json
+    >{
+    >   "query": {
+    >        "bool": {
+    >            "filter": {
+    >                "term": {
+    >                    "name": "小"
+    >                }
+    >            }
+    >        }
+    >   }
+    >}
+    >```
+
+- **must_not**
+
+    >这个和`must`相反，文档某字段中一定不能包含某个值，相当于“非”。
+
+- **should**
+
+    >`should`可以看做`or`的关系，例如下面查询name包含"小"或者年龄是18岁的用户。
+    >
+    >```json
+    >{
+    >   "query": {
+    >        "bool": {
+    >            "should": [
+    >                {
+    >                    "term": {
+    >                        "name": "小"
+    >                    }
+    >                },
+    >                {
+    >                    "term": {
+    >                        "age": 18
+    >                    }
+    >                }
+    >            ]
+    >        }
+    >   }
+    >}
+    >```
+
+## 六、聚合查询
+
+Elasticsearch除全文检索功能外提供的针对Elasticsearch数据做统计分析的功能。可以查询某组数据的最大最小值，**分组**查询某些数据。
+
+- Metric(指标)：指标分析类型，如计算最大值、最小值、平均值等等 （对桶内的文档进行聚合分析的操作）
+- Bucket(桶)：分桶类型，类似SQL中的GROUP BY语法 （满足特定条件的文档的集合）
+- Pipeline(管道)：管道分析类型，基于上一级的聚合分析结果进行在分析
+
+### 6.1、Metric(指标)数据
+
+#### 常用数学操作
+
+> 这里常用的数学操作有`min`(最小)、`max`(最大)、`sum`(和)、`avg`(平均数)。注意这些操作只能输出一个分析结果。使用方式大同小异。
+>
+> ```json
+> {
+>        "aggs": {
+>            "avg_user_age": {
+>                "avg": {
+>                    "field": "age"
+>                }
+>            }
+>        }
+> }
+> ```
+
+#### cardinality
+
+>计算某字段去重后的数量
+>
+>```json
+>{
+>        "aggs": {
+>             "avg_user": {
+>                 "cardinality": {
+>                     "field": "age"
+>                 }
+>             }
+>        }
+>}
+>```
+
+#### percentiles
+
+>对指定字段的值按从小到大累计每个值对应的文档数的占比，返回指定占比比例对应的值。
+>
+>默认统计百分比为**[ 1, 5, 25, 50, 75, 95, 99 ]**
+>
+>```json
+>{
+>        "aggs": {
+>             "avg_user": {
+>                 "percentiles": {
+>                     "field": "age"
+>                 }
+>             }
+>        }
+>}
+>```
+
+#### percentile_ranks
+
+>percentiles是通过百分比求出文档某字段，percentile_ranks是给定文档中的某字段求百分比。
+>
+>```json
+>{
+>        "aggs": {
+>             "avg_user": {
+>                 "percentile_ranks": {
+>                     "field": "age",
+>                     "values": [18, 30]
+>                 }
+>             }
+>        }
+>}
+>```
+
+#### top_hits
+
+>top_hits可以得到某条件下top n的文档。
+>
+>```json
+>{
+>        "aggs": {
+>             "avg_user": {
+>                 "top_hits": {
+>                     "sort": [
+>                         {
+>                             "age": {
+>                                 "order": "asc"
+>                             }
+>                         }
+>                     ],
+>                     "size": 1
+>                 }
+>             }
+>        },
+>        "size": 0
+>}
+>```
+
+### 6.2、Bucket(桶)
+
+类似于分组的概念。
+
+#### terms	
+
+>根据给定的filed分组，返回每组多少文档。
+>
+>```json
+>{
+>        "aggs": {
+>             "avg_user": {
+>                 "terms": {
+>                     "field": "city"
+>                 }
+>             }
+>        }
+>}
+>```
+
+#### ranges
+
+>根据区间分组
+>
+>```json
+>{
+>        "aggs": {
+>             "price_ranges": {
+>                 "range": {
+>                     "field": "age",
+>                     "ranges": [
+>                         {
+>                             "to": 20
+>                         },
+>                         {
+>                             "from": 20,
+>                             "to": 30
+>                         },
+>                         {
+>                             "from": 30
+>                         }
+>                     ]
+>                 }
+>             }
+>        }
+>}
+>```
